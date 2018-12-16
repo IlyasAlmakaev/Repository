@@ -24,12 +24,11 @@ class RepositoryInfoViewController: UIViewController {
 
         fullName.text = repositoryInfo?.fullName
         repositoryDescription.text = repositoryInfo?.description
-       // homepage.text = repositoryInfo?.homepage
-        homepage.isHidden = true
+        homepage.text = repositoryInfo?.homepage
         language.text = repositoryInfo?.language
-        watch.text = String(repositoryInfo?.watchers ?? 0)
-        star.text = String(repositoryInfo?.stargazersCount ?? 0)
-        fork.text = String(repositoryInfo?.forks ?? 0)
+        watch.text = "Watch " + String(repositoryInfo?.watchers ?? 0)
+        star.text = "Star " + String(repositoryInfo?.stargazersCount ?? 0)
+        fork.text = "Fork " + String(repositoryInfo?.forks ?? 0)
     }
 
 
