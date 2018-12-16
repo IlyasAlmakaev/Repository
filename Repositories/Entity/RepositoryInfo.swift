@@ -30,6 +30,6 @@ class RepositoryInfo {
         self.language = map["language"] as? String
         self.watchers = map["watchers"] as? Int
         self.stargazersCount = map["stargazers_count"] as? Int
-        self.watchers = map["forks"] as? Int
+        self.forks = map["forks"] as? Int
     }
 }
