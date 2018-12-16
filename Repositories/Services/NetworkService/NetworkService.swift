@@ -36,4 +36,28 @@ class NetworkService {
             }
         }
     }
+    
+    func getSearchedRepository(nameRepository: String,
+                               successHundler: @escaping (NSArray) -> Void,
+                               errorHundler: @escaping (Error) -> Void) {
+        let parameters = "?q=\(nameRepository)&sort=stars"
+        let url = baseUrl + parameters
+        
+        AF.request(url).responseJSON { response in
+            switch response.result {
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    errorHundler(error)
+                }
+            case .success:
+                if let result = response.result.value as? NSDictionary  {
+                    if let arraySchedule = result["items"] as! NSArray? {
+                        DispatchQueue.main.async {
+                            successHundler(arraySchedule)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

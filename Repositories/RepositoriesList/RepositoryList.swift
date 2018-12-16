@@ -8,32 +8,38 @@
 
 import UIKit
 
-class RepositoryList: UITableViewController {
-    
-    var networkService: NetworkService!
+class RepositoryList: UITableViewController, UISearchResultsUpdating {
+
+    private var networkService: NetworkService!
     private var repositoryList: NSArray?
+    private var searchedRepositoryList: NSArray?
+    private let searchController = UISearchController(searchResultsController: nil)
         
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
         let nib = UINib(nibName: "RepositoryCell", bundle: nil)
         tableView.register(nib, forCellReuseIdentifier: "idRepositoryCell")
+        
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search repositories"
+        if #available(iOS 11.0, *) {
+            navigationItem.searchController = searchController
+        } else {
+            tableView.tableHeaderView = searchController.searchBar
+        }
+        definesPresentationContext = true
         
         networkService = NetworkService()
         networkService.getRepositories(successHundler: { (array) in
             self.repositoryList = array
             self.tableView.reloadData()
-            print(self.repositoryList)
         }) { (error) in
             print(error)
         }
     }
-
+    
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -41,65 +47,59 @@ class RepositoryList: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if isFiltering() {
+            return searchedRepositoryList?.count ?? 0
+        }
         return repositoryList?.count ?? 0
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "idRepositoryCell", for: indexPath) as! RepositoryCell
-        cell.setup(model: Repository(map: repositoryList?[indexPath.row] as AnyObject))
+        if isFiltering() {
+            cell.setup(model: Repository(map: searchedRepositoryList?[indexPath.row] as AnyObject))
+        } else {
+            cell.setup(model: Repository(map: repositoryList?[indexPath.row] as AnyObject))
+        }
+        
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(indexPath.row)
         let repositoryInfoViewController = RepositoryInfoViewController()
-        repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: repositoryList?[indexPath.row] as AnyObject)
+        if isFiltering() {
+            repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: searchedRepositoryList?[indexPath.row] as AnyObject)
+        } else {
+            repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: repositoryList?[indexPath.row] as AnyObject)
+        }
         self.navigationController!.pushViewController(repositoryInfoViewController, animated: true)
     }
+    
+    // MARK: - Search controller
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
+    func updateSearchResults(for searchController: UISearchController) {
+        if (searchController.searchBar.text?.count)! > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.networkService.getSearchedRepository(nameRepository: searchController.searchBar.text!,
+                                                          successHundler: { (array) in
+                                                            self.searchedRepositoryList = array
+                                                            self.tableView.reloadData()
+                }) { (error) in
+                    print(error)
+                }
+            }
+        } else {
+            self.searchedRepositoryList = []
+            self.tableView.reloadData()
+        }
     }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
+    
+    func isFiltering() -> Bool {
+        return searchController.isActive && !searchBarIsEmpty()
     }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
+    
+    func searchBarIsEmpty() -> Bool {
+        return searchController.searchBar.text?.isEmpty ?? true
     }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
     
 }
