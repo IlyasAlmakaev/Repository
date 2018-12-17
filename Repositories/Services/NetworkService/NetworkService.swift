@@ -8,15 +8,15 @@
 
 import Foundation
 import Alamofire
-//import SwiftyJSON
 
 class NetworkService {
     
     let baseUrl = "https://api.github.com/search/repositories"
     
-    func getRepositories(successHundler: @escaping (NSArray) -> Void,
+    func getRepositories(page: Int,
+                         successHundler: @escaping (NSArray) -> Void,
                          errorHundler: @escaping (Error) -> Void) {
-        let parameters = "?q=stars:0..*&sort=stars"
+        let parameters = "?page=\(page)&q=archived:true&sort=stars"
         let url = baseUrl + parameters
         
         AF.request(url).responseJSON { response in
@@ -37,10 +37,11 @@ class NetworkService {
         }
     }
     
-    func getSearchedRepository(nameRepository: String,
+    func getSearchedRepository(page: Int,
+                               nameRepository: String,
                                successHundler: @escaping (NSArray) -> Void,
                                errorHundler: @escaping (Error) -> Void) {
-        let parameters = "?q=\(nameRepository)&sort=stars"
+        let parameters = "?page=\(page)&q=\(nameRepository)&sort=stars"
         let url = baseUrl + parameters
         
         AF.request(url).responseJSON { response in

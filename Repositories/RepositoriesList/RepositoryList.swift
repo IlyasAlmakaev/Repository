@@ -11,8 +11,10 @@ import UIKit
 class RepositoryList: UITableViewController, UISearchResultsUpdating {
 
     private var networkService: NetworkService!
-    private var repositoryList: NSArray?
-    private var searchedRepositoryList: NSArray?
+    private var repositoryList: NSMutableArray = []
+    private var searchedRepositoryList: NSMutableArray = []
+    private var paginationCountRepositories: Int = 1
+    private var paginationCountSearchedRepositories: Int = 1
     private let searchController = UISearchController(searchResultsController: nil)
         
     override func viewDidLoad() {
@@ -31,10 +33,28 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
         }
         definesPresentationContext = true
         
+        navigationItem.title = "Repositories"
+        
         networkService = NetworkService()
-        networkService.getRepositories(successHundler: { (array) in
-            self.repositoryList = array
-            self.tableView.reloadData()
+        getRepositories(page: paginationCountRepositories)
+    }
+    
+    func getRepositories(page: Int) {
+        networkService.getRepositories(page: page,
+                                       successHundler: { (array) in
+                                        self.repositoryList.addObjects(from: array as! [Any])
+                                        self.tableView.reloadData()
+        }) { (error) in
+            print(error)
+        }
+    }
+    
+    func getSearchedRepositories(page: Int) {
+        self.networkService.getSearchedRepository(page: page,
+                                                  nameRepository: searchController.searchBar.text!,
+                                                  successHundler: { (array) in
+                                                    self.searchedRepositoryList.addObjects(from: array as! [Any])
+                                                    self.tableView.reloadData()
         }) { (error) in
             print(error)
         }
@@ -48,17 +68,17 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if isFiltering() {
-            return searchedRepositoryList?.count ?? 0
+            return searchedRepositoryList.count
         }
-        return repositoryList?.count ?? 0
+        return repositoryList.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "idRepositoryCell", for: indexPath) as! RepositoryCell
         if isFiltering() {
-            cell.setup(model: Repository(map: searchedRepositoryList?[indexPath.row] as AnyObject))
+            cell.setup(model: Repository(map: searchedRepositoryList[indexPath.row] as AnyObject))
         } else {
-            cell.setup(model: Repository(map: repositoryList?[indexPath.row] as AnyObject))
+            cell.setup(model: Repository(map: repositoryList[indexPath.row] as AnyObject))
         }
         
         return cell
@@ -68,11 +88,26 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
         print(indexPath.row)
         let repositoryInfoViewController = RepositoryInfoViewController()
         if isFiltering() {
-            repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: searchedRepositoryList?[indexPath.row] as AnyObject)
+            repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: searchedRepositoryList[indexPath.row] as AnyObject)
         } else {
-            repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: repositoryList?[indexPath.row] as AnyObject)
+            repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: repositoryList[indexPath.row] as AnyObject)
         }
         self.navigationController!.pushViewController(repositoryInfoViewController, animated: true)
+    }
+    
+    override open func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if isFiltering() {
+            if indexPath.row == searchedRepositoryList.count - 5 {
+                paginationCountSearchedRepositories += 1
+                getSearchedRepositories(page: paginationCountSearchedRepositories)
+            }
+        } else {
+            if indexPath.row == repositoryList.count - 5 {
+                paginationCountRepositories += 1
+                getRepositories(page: paginationCountRepositories)
+            }
+        }
+        
     }
     
     // MARK: - Search controller
@@ -80,13 +115,7 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         if (searchController.searchBar.text?.count)! > 0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.networkService.getSearchedRepository(nameRepository: searchController.searchBar.text!,
-                                                          successHundler: { (array) in
-                                                            self.searchedRepositoryList = array
-                                                            self.tableView.reloadData()
-                }) { (error) in
-                    print(error)
-                }
+                self.getSearchedRepositories(page: self.paginationCountSearchedRepositories)
             }
         } else {
             self.searchedRepositoryList = []

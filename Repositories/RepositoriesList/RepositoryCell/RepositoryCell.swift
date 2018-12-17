@@ -21,7 +21,11 @@ class RepositoryCell: UITableViewCell {
 
     func setup(model: Repository) {
         fullName.text = model.fullName
-        language.text = model.language
+        if model.language?.count ?? 0 > 0 {
+            language.text = model.language
+        } else {
+            language.text = "Without language"
+        }
         stargazersCount.text = String(model.stargazersCount ?? 0)
     }
     

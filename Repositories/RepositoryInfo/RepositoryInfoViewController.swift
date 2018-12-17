@@ -21,11 +21,16 @@ class RepositoryInfoViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        navigationItem.title = "Repository"
+        
         fullName.text = repositoryInfo?.fullName
         repositoryDescription.text = repositoryInfo?.description
         homepage.text = repositoryInfo?.homepage
-        language.text = repositoryInfo?.language
+        if repositoryInfo?.language?.count ?? 0 > 0 {
+            language.text = repositoryInfo?.language
+        } else {
+            language.text = "Without language"
+        }
         watch.text = "Watch " + String(repositoryInfo?.watchers ?? 0)
         star.text = "Star " + String(repositoryInfo?.stargazersCount ?? 0)
         fork.text = "Fork " + String(repositoryInfo?.forks ?? 0)
