@@ -125,15 +125,16 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
     // MARK: - Search controller
 
     func updateSearchResults(for searchController: UISearchController) {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.reload(_:)), object: searchController)
+        perform(#selector(self.reload(_:)), with: searchController, afterDelay: 3)
+    }
+    
+    @objc func reload(_ searchController: UISearchController) {
         self.searchedRepositoryList.removeAllObjects()
         if (searchController.searchBar.text?.count)! > 0 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.getSearchedRepositories(page: self.paginationCountSearchedRepositories)
-            }
+            self.getSearchedRepositories(page: self.paginationCountSearchedRepositories)
         } else {
-            self.searchedRepositoryList.removeAllObjects()
             self.tableView.reloadData()
-            self.spinner.stopAnimating()
         }
     }
     
