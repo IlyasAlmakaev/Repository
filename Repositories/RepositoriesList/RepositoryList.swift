@@ -46,27 +46,31 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
     func getRepositories(page: Int) {
         spinner.startAnimating()
         networkService.getRepositories(page: page,
-                                       successHundler: { (array) in
-                                        self.repositoryList.addObjects(from: array as! [Any])
-                                        self.tableView.reloadData()
-                                        self.spinner.stopAnimating()
-        }) { (error) in
+                                       successHundler: { [weak self] (array) in
+                                        guard let strongSelf = self else { return }
+                                        strongSelf.repositoryList.addObjects(from: array as! [Any])
+                                        strongSelf.tableView.reloadData()
+                                        strongSelf.spinner.stopAnimating()
+        }) { [weak self] (error) in
             print(error)
-            self.spinner.stopAnimating()
+            guard let strongSelf = self else { return }
+            strongSelf.spinner.stopAnimating()
         }
     }
     
     func getSearchedRepositories(page: Int) {
         spinner.startAnimating()
-        self.networkService.getSearchedRepository(page: page,
+        networkService.getSearchedRepository(page: page,
                                                   nameRepository: searchController.searchBar.text!,
-                                                  successHundler: { (array) in
-                                                    self.searchedRepositoryList.addObjects(from: array as! [Any])
-                                                    self.tableView.reloadData()
-                                                    self.spinner.stopAnimating()
-        }) { (error) in
+                                                  successHundler: { [weak self] (array) in
+                                                    guard let strongSelf = self else { return }
+                                                    strongSelf.searchedRepositoryList.addObjects(from: array as! [Any])
+                                                    strongSelf.tableView.reloadData()
+                                                    strongSelf.spinner.stopAnimating()
+        }) { [weak self] (error) in
             print(error)
-            self.spinner.stopAnimating()
+            guard let strongSelf = self else { return }
+            strongSelf.spinner.stopAnimating()
         }
     }
     
@@ -90,19 +94,17 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
         } else {
             cell.setup(model: Repository(map: repositoryList[indexPath.row] as AnyObject))
         }
-        
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(indexPath.row)
         let repositoryInfoViewController = RepositoryInfoViewController()
         if isFiltering() {
             repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: searchedRepositoryList[indexPath.row] as AnyObject)
         } else {
             repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: repositoryList[indexPath.row] as AnyObject)
         }
-        self.navigationController!.pushViewController(repositoryInfoViewController, animated: true)
+        navigationController!.pushViewController(repositoryInfoViewController, animated: true)
     }
     
     override open func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -123,13 +125,15 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
     // MARK: - Search controller
 
     func updateSearchResults(for searchController: UISearchController) {
+        self.searchedRepositoryList.removeAllObjects()
         if (searchController.searchBar.text?.count)! > 0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.getSearchedRepositories(page: self.paginationCountSearchedRepositories)
             }
         } else {
-            self.searchedRepositoryList = []
+            self.searchedRepositoryList.removeAllObjects()
             self.tableView.reloadData()
+            self.spinner.stopAnimating()
         }
     }
     
