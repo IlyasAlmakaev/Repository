@@ -23,11 +23,12 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
         
         let nib = UINib(nibName: "RepositoryCell", bundle: nil)
         tableView.register(nib, forCellReuseIdentifier: "idRepositoryCell")
-        self.navigationController?.navigationBar.isTranslucent = true
         
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search repositories"
+        self.searchController.hidesNavigationBarDuringPresentation = false;
+        self.definesPresentationContext = false;
         if #available(iOS 11.0, *) {
             navigationItem.searchController = searchController
         } else {
@@ -45,9 +46,7 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        self.navigationController?.navigationBar.isTranslucent = true
-        
-        if let index = self.tableView.indexPathForSelectedRow{
+        if let index = self.tableView.indexPathForSelectedRow {
             self.tableView.deselectRow(at: index, animated: true)
         }
     }
@@ -113,6 +112,7 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
         } else {
             repositoryInfoViewController.repositoryInfo = RepositoryInfo(map: repositoryList[indexPath.row] as AnyObject)
         }
+        
         navigationController!.pushViewController(repositoryInfoViewController, animated: true)
     }
     

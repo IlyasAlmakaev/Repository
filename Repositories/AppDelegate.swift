@@ -18,6 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         let repositoryList = RepositoryList()
         let repositoryListNavigationController = UINavigationController(rootViewController: repositoryList)
+        repositoryListNavigationController.navigationBar.isTranslucent = false
         window?.rootViewController = repositoryListNavigationController
         window?.makeKeyAndVisible()
         

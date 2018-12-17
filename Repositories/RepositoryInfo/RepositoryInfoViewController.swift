@@ -22,7 +22,6 @@ class RepositoryInfoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = "Repository"
-        self.navigationController?.navigationBar.isTranslucent = false
         
         fullName.text = repositoryInfo?.fullName
         repositoryDescription.text = repositoryInfo?.description
