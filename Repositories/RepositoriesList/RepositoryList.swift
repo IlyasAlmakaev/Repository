@@ -23,6 +23,7 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
         
         let nib = UINib(nibName: "RepositoryCell", bundle: nil)
         tableView.register(nib, forCellReuseIdentifier: "idRepositoryCell")
+        self.navigationController?.navigationBar.isTranslucent = true
         
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
@@ -39,8 +40,12 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
         networkService = NetworkService()
         getRepositories(page: paginationCountRepositories)
 
-        spinner.center = CGPoint(x: UIScreen.main.bounds.size.width / 2, y: view.center.y)
+        spinner.center = CGPoint(x: UIScreen.main.bounds.size.width / 2, y: UIScreen.main.bounds.size.height / 2)
         self.view.addSubview(spinner)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        self.navigationController?.navigationBar.isTranslucent = true
     }
     
     func getRepositories(page: Int) {
@@ -126,7 +131,7 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
 
     func updateSearchResults(for searchController: UISearchController) {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.reload(_:)), object: searchController)
-        perform(#selector(self.reload(_:)), with: searchController, afterDelay: 2)
+        perform(#selector(self.reload(_:)), with: searchController, afterDelay: 3)
     }
     
     @objc func reload(_ searchController: UISearchController) {
