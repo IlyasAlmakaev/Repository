@@ -16,6 +16,7 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
     private var paginationCountRepositories: Int = 1
     private var paginationCountSearchedRepositories: Int = 1
     private let searchController = UISearchController(searchResultsController: nil)
+    private let spinner = UIActivityIndicatorView(style: .gray)
         
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,26 +38,35 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
         
         networkService = NetworkService()
         getRepositories(page: paginationCountRepositories)
+
+        spinner.center = CGPoint(x: UIScreen.main.bounds.size.width / 2, y: view.center.y)
+        self.view.addSubview(spinner)
     }
     
     func getRepositories(page: Int) {
+        spinner.startAnimating()
         networkService.getRepositories(page: page,
                                        successHundler: { (array) in
                                         self.repositoryList.addObjects(from: array as! [Any])
                                         self.tableView.reloadData()
+                                        self.spinner.stopAnimating()
         }) { (error) in
             print(error)
+            self.spinner.stopAnimating()
         }
     }
     
     func getSearchedRepositories(page: Int) {
+        spinner.startAnimating()
         self.networkService.getSearchedRepository(page: page,
                                                   nameRepository: searchController.searchBar.text!,
                                                   successHundler: { (array) in
                                                     self.searchedRepositoryList.addObjects(from: array as! [Any])
                                                     self.tableView.reloadData()
+                                                    self.spinner.stopAnimating()
         }) { (error) in
             print(error)
+            self.spinner.stopAnimating()
         }
     }
     
