@@ -126,7 +126,7 @@ class RepositoryList: UITableViewController, UISearchResultsUpdating {
 
     func updateSearchResults(for searchController: UISearchController) {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.reload(_:)), object: searchController)
-        perform(#selector(self.reload(_:)), with: searchController, afterDelay: 3)
+        perform(#selector(self.reload(_:)), with: searchController, afterDelay: 2)
     }
     
     @objc func reload(_ searchController: UISearchController) {
